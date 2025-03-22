@@ -87,6 +87,19 @@ int assertEqualLongArray(long input[], long inputLen, long expected[], long expe
     return 1;
 }
 
+int assertCharContaining(char *input, char expected) {
+    int i = 0;
+    while (input[i] != '\0') {
+        if (input[i] == expected ) {
+            printf("✅ PASS: Expected %c is in Index %d\n", expected, i);
+            return 1;
+        }
+        i++;
+    }
+    printf("❌ FAIL: Expected char %c doesn't exist\n", expected);
+    return 0;
+
+}
 
 
 
@@ -108,6 +121,9 @@ void runTests() {
     assertEqualIntArray(intArray,3 ,intArray2,3);
     assertEqualIntArray(intArray, 3, intArray3,2);
     assertEqualIntArray(intArray, 3 ,intArray4,3);
+
+    assertCharContaining("hello",'o');
+    assertCharContaining("hello",'q');
 }
 
 int main(void) {
