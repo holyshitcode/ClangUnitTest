@@ -101,6 +101,33 @@ int assertCharContaining(char *input, char expected) {
 
 }
 
+int assertStrContainingStr(char *input, char *expected) {
+    int inputLen = strlen(input);
+    int expectedLen = strlen(expected);
+
+    if (inputLen < expectedLen) {
+        printf("❌ FAIL: Input string is shorter than expected string\n");
+        return 0;
+    }
+
+    for (int i = 0; i <= inputLen - expectedLen; i++) {
+        int matchFound = 1;
+        for (int j = 0; j < expectedLen; j++) {
+            if (input[i + j] != expected[j]) {
+                matchFound = 0;
+                break;
+            }
+        }
+        if (matchFound) {
+            printf("✅ PASS: Expected string '%s' found at index %d\n", expected, i);
+            return 1;
+        }
+    }
+
+    printf("❌ FAIL: Expected string '%s' not found\n", expected);
+    return 0;
+}
+
 
 
 void runTests() {
@@ -124,6 +151,9 @@ void runTests() {
 
     assertCharContaining("hello",'o');
     assertCharContaining("hello",'q');
+
+    assertStrContainingStr("hello", "ll");
+    assertStrContainingStr("hello", "qq");
 }
 
 int main(void) {
