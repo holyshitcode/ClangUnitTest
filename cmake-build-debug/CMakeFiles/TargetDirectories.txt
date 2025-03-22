@@ -1,0 +1,3 @@
+/Users/junyeong/maindir/cunit/cmake-build-debug/CMakeFiles/cunit.dir
+/Users/junyeong/maindir/cunit/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/junyeong/maindir/cunit/cmake-build-debug/CMakeFiles/rebuild_cache.dir
