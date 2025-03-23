@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
+#include <setjmp.h>
+
 
 int assertEqualString(char *input, char *expected) {
     if (strcmp(input, expected) == 0) {
@@ -130,30 +133,115 @@ int assertStrContainingStr(char *input, char *expected) {
 
 
 
+int assertIntArrayContainingInt(int input[], int inputLen, int expected) {
+    int flag = 0;
+    int i;
+    for (i = 0 ; i < inputLen; i++) {
+        if (input[i] == expected) {
+            flag++;
+            break;
+        }
+    }
+    if (flag == 0) {
+        printf("❌ FAIL: Expected %d not in Array\n",expected);
+        return 0;
+    }
+    printf("✅ PASS: Expected Int %d found at index %d\n", expected, i);
+    return 1;
+}
+
+int assertDoubleArrayContainingDouble(double input[], int inputLen, double expected) {
+    int flag = 0;
+    int i;
+    for (i = 0 ; i < inputLen; i++) {
+        if (input[i] == expected) {
+            flag++;
+        }
+    }
+    if (flag == 0) {
+        printf("❌ FAIL: Expected %f not in Array\n",expected);
+    }
+    printf("✅ PASS: Expected Int %f found at index %d\n", expected, i);
+    return 1;
+}
+
+int assertLongArrayContainingLong(long input[], int inputLen, long expected) {
+    int flag = 0;
+    int i;
+    for (i = 0 ; i < inputLen; i++) {
+        if (input[i] == expected) {
+            flag++;
+        }
+    }
+    if (flag == 0) {
+        printf("❌ FAIL: Expected %ld not in Array\n",expected);
+    }
+    printf("✅ PASS: Expected Int %ld found at index %d\n", expected, i);
+    return 1;
+}
+
+
+jmp_buf jump;
+
+/** divide by zero
+ *  ex = if( num < 0){
+ *          try();
+ *      }else{
+ *          function();
+ *      }
+ ================================================
+ *      void main(){
+ *         if(setjmp(jump) == 0){
+ *             function();
+ *             function();
+ *         }else{
+ *              printf("Exception Occur");
+ *         }
+ *      }
+ */
+
+void try(){
+    printf("🚨 에러 발생!\n");
+    longjmp(jump, 1);
+}
+
+
+
+
+
+
 void runTests() {
-    assertEqualString("hello", "hello");
-    assertEqualString("hello", "world");
+    if (setjmp(jump) == 0) {
+        assertEqualString("hello", "hello");
+        assertEqualString("hello", "world");
 
-    assertEqualInt(10, 10);
-    assertEqualInt(10, 5);
+        assertEqualInt(10, 10);
+        assertEqualInt(10, 5);
 
-    assertEqualCharLen("hello", "world");
-    assertEqualCharLen("hi", "hello");
-    assertEqualCharLen(NULL, "test");
+        assertEqualCharLen("hello", "world");
+        assertEqualCharLen("hi", "hello");
+        assertEqualCharLen(NULL, "test");
 
-    int intArray[3] = {1, 2, 3};
-    int intArray2[3] = {1, 2, 3};
-    int intArray3[2] = {1, 2};
-    int intArray4[3] = {1, 2, 4};
-    assertEqualIntArray(intArray,3 ,intArray2,3);
-    assertEqualIntArray(intArray, 3, intArray3,2);
-    assertEqualIntArray(intArray, 3 ,intArray4,3);
+        int intArray[3] = {1, 2, 3};
+        int intArray2[3] = {1, 2, 3};
+        int intArray3[2] = {1, 2};
+        int intArray4[3] = {1, 2, 4};
+        assertEqualIntArray(intArray,3 ,intArray2,3);
+        assertEqualIntArray(intArray, 3, intArray3,2);
+        assertEqualIntArray(intArray, 3 ,intArray4,3);
 
-    assertCharContaining("hello",'o');
-    assertCharContaining("hello",'q');
+        assertCharContaining("hello",'o');
+        assertCharContaining("hello",'q');
 
-    assertStrContainingStr("hello", "ll");
-    assertStrContainingStr("hello", "qq");
+        assertStrContainingStr("hello", "ll");
+        assertStrContainingStr("hello", "qq");
+        try();
+    }else {
+        int intArray5[10] = {1, 2, 4,10,20,40,50,60,70,100};
+        assertIntArrayContainingInt(intArray5,10 ,40);
+        assertIntArrayContainingInt(intArray5,10 ,100);
+        assertIntArrayContainingInt(intArray5,10 ,44);
+    }
 }
 
 int main(void) {
