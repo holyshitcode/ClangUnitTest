@@ -2,6 +2,7 @@
 #include <string.h>
 #include <errno.h>
 #include <setjmp.h>
+#include <stdlib.h>
 
 
 int assertEqualString(char *input, char *expected) {
@@ -180,6 +181,15 @@ int assertLongArrayContainingLong(long input[], int inputLen, long expected) {
     return 1;
 }
 
+int assertMallocIsNotNull(void *input) {
+    if (input == NULL) {
+        printf("❌ FAIL: Memory Allocation has been failed\n");
+        return 0;
+    }
+    printf("✅ PASS: Expected Location %p exist\n",&input);
+    return 1;
+}
+
 
 jmp_buf jump;
 
@@ -235,6 +245,9 @@ void runTests() {
 
         assertStrContainingStr("hello", "ll");
         assertStrContainingStr("hello", "qq");
+        int *test = malloc(sizeof(int));
+        assertMallocIsNotNull(test);
+        free(test);
         try();
     }else {
         int intArray5[10] = {1, 2, 4,10,20,40,50,60,70,100};
