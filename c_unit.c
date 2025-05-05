@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include <setjmp.h>
 #include <stdlib.h>
+#include <setjmp.h>
+#include "c_unit.h"
 
-typedef enum Boolean {
-    IsNot,null
-}boolean;
+jmp_buf jump;
+
 int assertEqualString(char *input, char *expected, boolean boolean) {
     if (boolean == IsNot) {
         if (strcmp(input, expected) == 0) {
@@ -84,7 +83,6 @@ int assertEqualIntArray(int input[], int inputLen, int expected[], int expectedL
         return 0;
     }
 
-    int isSame = 1;
     for (int i = 0; i < inputLen; i++) {
         if (input[i] != expected[i]) {
             printf("❌ FAIL: Arrays differ at index %d (expected %d, got %d)\n", i, expected[i], input[i]);
@@ -101,8 +99,6 @@ int assertEqualIntArray(int input[], int inputLen, int expected[], int expectedL
     return 1;
 }
 
-
-
 int assertEqualDoubleArray(double input[], double inputLen, double expected[], double expectedLen, boolean boolean) {
     if (input == NULL || expected == NULL) {
         printf("❌ FAIL: One of the input arrays is NULL\n");
@@ -114,7 +110,6 @@ int assertEqualDoubleArray(double input[], double inputLen, double expected[], d
         return 0;
     }
 
-    int isSame = 1;
     for (int i = 0; i < inputLen; i++) {
         if (input[i] != expected[i]) {
             printf("❌ FAIL: Arrays differ at index %d (expected %f, got %f)\n", i, expected[i], input[i]);
@@ -131,35 +126,32 @@ int assertEqualDoubleArray(double input[], double inputLen, double expected[], d
     return 1;
 }
 
-
-
-    int assertEqualLongArray(long input[], long inputLen, long expected[], long expectedLen, boolean boolean) {
-        if (input == NULL || expected == NULL) {
-            printf("❌ FAIL: One of the input arrays is NULL\n");
-            return 0;
-        }
-
-        if (inputLen != expectedLen) {
-            printf("❌ FAIL: Expected length %lf but got %lf\n", expectedLen, inputLen);
-            return 0;
-        }
-
-        int isSame = 1;
-        for (int i = 0; i < inputLen; i++) {
-            if (input[i] != expected[i]) {
-                printf("❌ FAIL: Arrays differ at index %d (expected %lf, got %lf)\n", i, expected[i], input[i]);
-                return 0;
-            }
-        }
-
-        if (boolean == IsNot) {
-            printf("❌ FAIL: Expected arrays to be different, but they are identical\n");
-            return 0;
-        }
-
-        printf("✅ PASS: Arrays are identical (length %lf)\n", inputLen);
-        return 1;
+int assertEqualLongArray(long input[], long inputLen, long expected[], long expectedLen, boolean boolean) {
+    if (input == NULL || expected == NULL) {
+        printf("❌ FAIL: One of the input arrays is NULL\n");
+        return 0;
     }
+
+    if (inputLen != expectedLen) {
+        printf("❌ FAIL: Expected length %ld but got %ld\n", expectedLen, inputLen);
+        return 0;
+    }
+
+    for (int i = 0; i < inputLen; i++) {
+        if (input[i] != expected[i]) {
+            printf("❌ FAIL: Arrays differ at index %d (expected %ld, got %ld)\n", i, expected[i], input[i]);
+            return 0;
+        }
+    }
+
+    if (boolean == IsNot) {
+        printf("❌ FAIL: Expected arrays to be different, but they are identical\n");
+        return 0;
+    }
+
+    printf("✅ PASS: Arrays are identical (length %ld)\n", inputLen);
+    return 1;
+}
 
 int assertCharContaining(char *input, char expected, boolean boolean) {
     if (input == NULL) {
@@ -167,8 +159,7 @@ int assertCharContaining(char *input, char expected, boolean boolean) {
         return 0;
     }
 
-    int i = 0;
-    while (input[i] != '\0') {
+    for (int i = 0; input[i] != '\0'; i++) {
         if (input[i] == expected) {
             if (boolean == IsNot) {
                 printf("❌ FAIL: Expected %c to NOT be in the string, but found at index %d\n", expected, i);
@@ -177,7 +168,6 @@ int assertCharContaining(char *input, char expected, boolean boolean) {
             printf("✅ PASS: Expected %c is in index %d\n", expected, i);
             return 1;
         }
-        i++;
     }
 
     if (boolean == IsNot) {
@@ -195,32 +185,13 @@ int assertStrContainingStr(char *input, char *expected, boolean boolean) {
         return 0;
     }
 
-    int inputLen = strlen(input);
-    int expectedLen = strlen(expected);
-
-    if (expectedLen == 0) {
-        printf("❌ FAIL: Expected string is empty\n");
-        return 0;
-    }
-
-    if (inputLen < expectedLen) {
+    if (strstr(input, expected)) {
         if (boolean == IsNot) {
-            printf("✅ PASS: Expected string '%s' does not exist in input (input is shorter)\n", expected);
-            return 1;
+            printf("❌ FAIL: Expected string '%s' found, but should not exist\n", expected);
+            return 0;
         }
-        printf("❌ FAIL: Input string is shorter than expected string\n");
-        return 0;
-    }
-
-    for (int i = 0; i <= inputLen - expectedLen; i++) {
-        if (strncmp(&input[i], expected, expectedLen) == 0) {
-            if (boolean == IsNot) {
-                printf("❌ FAIL: Expected string '%s' found at index %d, but should not exist\n", expected, i);
-                return 0;
-            }
-            printf("✅ PASS: Expected string '%s' found at index %d\n", expected, i);
-            return 1;
-        }
+        printf("✅ PASS: Expected string '%s' found\n", expected);
+        return 1;
     }
 
     if (boolean == IsNot) {
@@ -231,8 +202,6 @@ int assertStrContainingStr(char *input, char *expected, boolean boolean) {
     printf("❌ FAIL: Expected string '%s' not found\n", expected);
     return 0;
 }
-
-
 
 int assertIntArrayContainingInt(int input[], int inputLen, int expected, boolean boolean) {
     for (int i = 0; i < inputLen; i++) {
@@ -259,38 +228,37 @@ int assertDoubleArrayContainingDouble(double input[], int inputLen, double expec
     for (int i = 0; i < inputLen; i++) {
         if (input[i] == expected) {
             if (boolean == IsNot) {
-                printf("❌ FAIL: Expected Int %f found at index %d, but it should not exist\n", expected, i);
+                printf("❌ FAIL: Expected %f found at index %d, but it should not exist\n", expected, i);
                 return 0;
             }
-            printf("✅ PASS: Expected Int %f found at index %d\n", expected, i);
+            printf("✅ PASS: Expected %f found at index %d\n", expected, i);
             return 1;
         }
     }
 
     if (boolean == IsNot) {
-        printf("✅ PASS: Expected Int %f is not in array\n", expected);
+        printf("✅ PASS: Expected %f is not in array\n", expected);
         return 1;
     }
 
     printf("❌ FAIL: Expected %f not in Array\n", expected);
     return 0;
-    }
-
+}
 
 int assertLongArrayContainingLong(long input[], int inputLen, long expected, boolean boolean) {
     for (int i = 0; i < inputLen; i++) {
         if (input[i] == expected) {
             if (boolean == IsNot) {
-                printf("❌ FAIL: Expected Int %ld found at index %d, but it should not exist\n", expected, i);
+                printf("❌ FAIL: Expected %ld found at index %d, but it should not exist\n", expected, i);
                 return 0;
             }
-            printf("✅ PASS: Expected Int %ld found at index %d\n", expected, i);
+            printf("✅ PASS: Expected %ld found at index %d\n", expected, i);
             return 1;
         }
     }
 
     if (boolean == IsNot) {
-        printf("✅ PASS: Expected Int %ld is not in array\n", expected);
+        printf("✅ PASS: Expected %ld is not in array\n", expected);
         return 1;
     }
 
@@ -315,31 +283,7 @@ int assertMallocIsNotNull(void *input, boolean boolean) {
     return 1;
 }
 
-
-jmp_buf jump;
-
-/** divide by zero
- *  ex = if( num < 0){
- *          try();
- *      }else{
- *          function();
- *      }
- ================================================
- *      void main(){
- *         if(setjmp(jump) == 0){
- *             function();
- *             function();
- *         }else{
- *              printf("Exception Occur");
- *         }
- *      }
- */
-
-void try(){
+void try() {
     printf("🚨 에러 발생!\n");
     longjmp(jump, 1);
-}
-
-int main(void) {
-    return 0;
 }
